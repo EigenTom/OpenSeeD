@@ -56,6 +56,9 @@ def load_opt_command(args):
     parser.add_argument('--config_overrides', nargs='*', help='Override parameters on config with a json style string, e.g. {"<PARAM_NAME_1>": <PARAM_VALUE_1>, "<PARAM_GROUP_2>.<PARAM_SUBGROUP_2>.<PARAM_2>": <PARAM_VALUE_2>}. A key with "." updates the object in the corresponding nested dict. Remember to escape " in command line.')
     parser.add_argument('--overrides', help='arguments that used to override the config file in cmdline', nargs=argparse.REMAINDER)
 
+    parser.add_argument("--thing_classes", required=False, help="List of object categories.")
+    parser.add_argument("--stuff_classes", required=False, help="List of background categories.")
+    parser.add_argument("--output_path", type=str, required=False, help="Path to the output directory.")
     cmdline_args = parser.parse_args() if not args else parser.parse_args(args)
 
     opt = load_opt_from_config_files(cmdline_args.conf_files)
@@ -74,11 +77,12 @@ def load_opt_command(args):
 
         types = []
         for key in keys:
-            key = key.split('.')
-            ele = opt.copy()
-            while len(key) > 0:
-                ele = ele[key.pop(0)]
-            types.append(type(ele))
+            if key not in ["--thing_classes", "--stuff_classes", "--output_path", "--image_path"]:
+                key = key.split('.')
+                ele = opt.copy()
+                while len(key) > 0:
+                    ele = ele[key.pop(0)]
+                types.append(type(ele))
         
         config_dict = {x:z(y) for x,y,z in zip(keys, vals, types)}
         load_config_dict_to_opt(opt, config_dict)
