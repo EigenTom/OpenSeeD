@@ -1,0 +1,57 @@
+{
+    "tree": {
+        "1": {
+            "bbox": [
+                0,
+                0,
+                747,
+                548
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/tree/001.jpg"
+        }
+    },
+    "road": {
+        "2": {
+            "bbox": [
+                462,
+                569,
+                747,
+                851
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/road/001.jpg"
+        }
+    },
+    "person": {
+        "3": {
+            "bbox": [
+                704,
+                492,
+                740,
+                596
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/person/001.jpg"
+        }
+    },
+    "bench": {
+        "4": {
+            "bbox": [
+                0,
+                304,
+                747,
+                989
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/bench/001.jpg"
+        }
+    },
+    "teddy bear": {
+        "5": {
+            "bbox": [
+                0,
+                412,
+                580,
+                988
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/teddy bear/001.jpg"
+        }
+    }
+}

@@ -18,6 +18,8 @@ from detectron2.utils.colormap import random_color
 from openseed.BaseModel import BaseModel
 from openseed import build_model
 from utils.visualizer import Visualizer
+import json
+from PIL import Image, ImageDraw
 
 logger = logging.getLogger(__name__)
 
@@ -102,31 +104,118 @@ class PanopticSegmenter:
                 obj['category_id'] = self.metadata.stuff_dataset_id_to_contiguous_id[obj['category_id']]
         
         # Generate and save the panoptic segmentation result
-        pano_result = visualizer.draw_panoptic_seg(pano_seg.cpu(), pano_seg_info).get_image()
-        pano_output_path = os.path.join(output_path, 'panoptic_result.png')
-        Image.fromarray(pano_result).save(pano_output_path)
-        logger.info(f"Saved panoptic segmentation result to {pano_output_path}")
+        # pano_result = visualizer.draw_panoptic_seg(pano_seg.cpu(), pano_seg_info, alpha=1).get_image()
+        # pano_output_path = os.path.join(output_path, 'panoptic_result.png')
+        # Image.fromarray(pano_result).save(pano_output_path)
+        # logger.info(f"Saved panoptic segmentation result to {pano_output_path}")
         
-        # Save individual masks in category folders
+        colors = labelcolormap(182) # 91 thing classes + 91 stuff classes for COCO dataset standard
+        
+        # Save individual masks in category folders        
         category_counts = {}
+        segmentation_metadata = {}
+
         for obj in pano_seg_info:
             # Determine category name and create folder if not exists
             category_id = obj['category_id']
             is_thing = obj['isthing']
             category_name = self.thing_classes[category_id] if is_thing else self.stuff_classes[category_id - len(self.thing_classes)]
+            
+            print(f"[DEBUG] category_name: {category_name}, category_id: {category_id}")
+            
             category_folder = os.path.join(output_path, category_name)
             os.makedirs(category_folder, exist_ok=True)
-            
-            # Generate mask, apply post-processing, and save it with sequential naming
+
+            # Generate mask and bounding box
             mask = (pano_seg.cpu().numpy() == obj['id']).astype(np.uint8) * 255
             processed_mask = self._post_process_mask(mask)
             object_count = category_counts.get(category_name, 0) + 1
             category_counts[category_name] = object_count
+
+            # Save mask
             mask_filename = f"{object_count:03d}.jpg"
             mask_output_path = os.path.join(category_folder, mask_filename)
+            
+            # Get bounding box (min/max x and y from the mask)
+            ys, xs = np.where(mask > 0)
+            bbox = [int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())]  # [x_min, y_min, x_max, y_max]
+
+            # Update segmentation metadata
+            if category_name not in segmentation_metadata:
+                segmentation_metadata[category_name] = {}
+            segmentation_metadata[category_name][obj['id']] = {
+                "bbox": bbox,
+                "mask_path": mask_output_path
+            }
+            
             mask_image = Image.fromarray(processed_mask)
+            
+            # draw bbox on the mask for evaluation correctness
+            # draw = ImageDraw.Draw(mask_image)
+            # draw.rectangle(bbox, outline='red')
+            
+            # save the mask
             mask_image.save(mask_output_path)
             logger.info(f"Saved mask for {category_name} to {mask_output_path}")
+            print(f"Saved mask for {category_name} to {mask_output_path}")
+
+        # Save segmentation metadata to JSON
+        json_output_path = os.path.join(output_path, "segmentation_metadata.json")
+        with open(json_output_path, "w") as json_file:
+            json.dump(segmentation_metadata, json_file, indent=4)
+        logger.info(f"Saved segmentation metadata to {json_output_path}")
+        print(f"Saved segmentation metadata to {json_output_path}")
+
+        # generate a full masked image with all the masks colored, if no mask is found then use the first color ("unlabeled")
+        full_mask = np.zeros((image_ori.height, image_ori.width, 3), dtype=np.uint8)
+        for obj in pano_seg_info:
+            category_id = obj['category_id']
+            is_thing = obj['isthing']
+            mask = (pano_seg.cpu().numpy() == obj['id']).astype(np.uint8) * 255
+            
+            processed_mask = self._post_process_mask(mask)
+            # processed_mask = mask
+            
+            color = colors[category_id] if is_thing else colors[category_id + len(self.thing_classes)]
+            
+            full_mask[processed_mask > 0] = color
+        
+        print(len(self.thing_classes))
+        print(len(self.stuff_classes))
+        
+        # check if there are any parts of the image that are not labeled
+        # for all unlabeled parts, color them with the first color
+        # 
+        # full_mask[full_mask.sum(axis=2) == 0] = colors[91]
+        
+            
+        
+        full_mask_output_path = os.path.join(output_path, 'full_mask.png')
+        Image.fromarray(full_mask).save(full_mask_output_path)
+        logger.info(f"Saved full mask to {full_mask_output_path}")
+        
+        
+        
+def uint82bin(n, count=8):
+    """returns the binary of integer n, count refers to amount of bits"""
+    return ''.join([str((n >> y) & 1) for y in range(count - 1, -1, -1)])
+    
+def labelcolormap(N=182):
+    cmap = np.zeros((N, 3), dtype=np.uint8)
+    for i in range(N):
+        r, g, b = 0, 0, 0
+        id = i + 1  # let's give 0 a color
+        for j in range(7):
+            str_id = uint82bin(id)
+            r = r ^ (np.uint8(str_id[-1]) << (7 - j))
+            g = g ^ (np.uint8(str_id[-2]) << (7 - j))
+            b = b ^ (np.uint8(str_id[-3]) << (7 - j))
+            id = id >> 3
+        cmap[i, 0] =  r
+        cmap[i, 1] =  g
+        cmap[i, 2] =  b
+     
+    return cmap
 
 # Command-line interface to run inference with the class
 if __name__ == "__main__":

@@ -514,8 +514,10 @@ class Visualizer:
             self.draw_binary_mask(
                 mask,
                 color=mask_color,
-                edge_color=_OFF_WHITE,
-                text=text,
+                # edge_color=_OFF_WHITE,
+                # text=text,
+                edge_color=None,
+                text=None,
                 alpha=alpha,
                 area_threshold=area_threshold,
             )
@@ -890,7 +892,6 @@ class Visualizer:
         
         # limit color's value up to 1 for each entry
         color = np.minimum(list(color), 1)
-        print(color)
         
         color = np.maximum(list(mplc.to_rgb(color)), 0.2)
         color[np.argmax(color)] = max(0.8, np.max(color))
@@ -1094,7 +1095,7 @@ class Visualizer:
             rgba[:, :, 3] = (mask.mask == 1).astype("float32") * alpha
             has_valid_segment = True
             self.output.ax.imshow(rgba, extent=(0, self.output.width, self.output.height, 0))
-
+        
         if text is not None and has_valid_segment:
             lighter_color = self._change_color_brightness(color, brightness_factor=0.7)
             self._draw_text_in_mask(binary_mask, text, lighter_color)
