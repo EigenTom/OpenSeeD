@@ -123,7 +123,7 @@ class PanopticSegmenter:
             is_thing = obj['isthing']
             category_name = self.thing_classes[category_id] if is_thing else self.stuff_classes[category_id - len(self.thing_classes)]
             
-            print(f"[DEBUG] category_name: {category_name}, category_id: {category_id}")
+            print(f"[DEBUG] Detected category_name: {category_name}, category_id: {category_id}")
             
             category_folder = os.path.join(output_path, category_name)
             os.makedirs(category_folder, exist_ok=True)
@@ -156,8 +156,8 @@ class PanopticSegmenter:
             
             # save the mask
             Image.fromarray(processed_mask).save(mask_output_path)
-            logger.info(f"Saved mask for {category_name} to {mask_output_path}")
-            print(f"Saved mask for {category_name} to {mask_output_path}")
+            # logger.info(f"Saved mask for {category_name} to {mask_output_path}")
+            # print(f"Saved mask for {category_name} to {mask_output_path}")
 
         # Save segmentation metadata to JSON
         json_output_path = os.path.join(output_path, "segmentation_metadata.json")
