@@ -78,6 +78,7 @@ class PanopticSegmenter:
         # Smooth the edges
         smoothed = cv2.GaussianBlur(closed, (5, 5), 0)
         return smoothed
+        
 
     def run_inference(self, image_path, output_path):
         os.makedirs(output_path, exist_ok=True)
@@ -115,6 +116,7 @@ class PanopticSegmenter:
         category_counts = {}
         segmentation_metadata = {}
 
+        masks = []
         for obj in pano_seg_info:
             # Determine category name and create folder if not exists
             category_id = obj['category_id']
@@ -129,6 +131,10 @@ class PanopticSegmenter:
             # Generate mask and bounding box
             mask = (pano_seg.cpu().numpy() == obj['id']).astype(np.uint8) * 255
             processed_mask = self._post_process_mask(mask)
+            
+            # save this object's mask for further generating the background mask
+            masks.append(processed_mask)
+            
             object_count = category_counts.get(category_name, 0) + 1
             category_counts[category_name] = object_count
 
@@ -148,14 +154,8 @@ class PanopticSegmenter:
                 "mask_path": mask_output_path
             }
             
-            mask_image = Image.fromarray(processed_mask)
-            
-            # draw bbox on the mask for evaluation correctness
-            # draw = ImageDraw.Draw(mask_image)
-            # draw.rectangle(bbox, outline='red')
-            
             # save the mask
-            mask_image.save(mask_output_path)
+            Image.fromarray(processed_mask).save(mask_output_path)
             logger.info(f"Saved mask for {category_name} to {mask_output_path}")
             print(f"Saved mask for {category_name} to {mask_output_path}")
 
@@ -165,6 +165,16 @@ class PanopticSegmenter:
             json.dump(segmentation_metadata, json_file, indent=4)
         logger.info(f"Saved segmentation metadata to {json_output_path}")
         print(f"Saved segmentation metadata to {json_output_path}")
+        
+        # generate a mask for the background
+        background_mask = np.zeros((image_ori.height, image_ori.width), dtype=np.uint8)
+        for mask in masks:
+            background_mask[mask > 0] = 255
+        # then inverse all areas that are not masked
+        background_mask = 255 - background_mask
+        background_mask_output_path = os.path.join(output_path, 'background_mask.png')
+        Image.fromarray(background_mask).save(background_mask_output_path)
+        print(f"Saved background mask to {background_mask_output_path}")
 
         # generate a full masked image with all the masks colored, if no mask is found then use the first color ("unlabeled")
         full_mask = np.zeros((image_ori.height, image_ori.width, 3), dtype=np.uint8)
@@ -180,22 +190,10 @@ class PanopticSegmenter:
             
             full_mask[processed_mask > 0] = color
         
-        print(len(self.thing_classes))
-        print(len(self.stuff_classes))
-        
-        # check if there are any parts of the image that are not labeled
-        # for all unlabeled parts, color them with the first color
-        # 
-        # full_mask[full_mask.sum(axis=2) == 0] = colors[91]
-        
-            
-        
         full_mask_output_path = os.path.join(output_path, 'full_mask.png')
         Image.fromarray(full_mask).save(full_mask_output_path)
         logger.info(f"Saved full mask to {full_mask_output_path}")
-        
-        
-        
+            
 def uint82bin(n, count=8):
     """returns the binary of integer n, count refers to amount of bits"""
     return ''.join([str((n >> y) & 1) for y in range(count - 1, -1, -1)])

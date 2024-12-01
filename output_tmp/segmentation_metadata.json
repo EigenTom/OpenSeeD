@@ -1,57 +1,66 @@
 {
-    "tree": {
+    "person": {
         "1": {
             "bbox": [
-                0,
-                0,
-                747,
-                548
-            ],
-            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/tree/001.jpg"
-        }
-    },
-    "road": {
-        "2": {
-            "bbox": [
-                462,
-                569,
-                747,
-                851
-            ],
-            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/road/001.jpg"
-        }
-    },
-    "person": {
-        "3": {
-            "bbox": [
-                704,
-                492,
+                703,
+                490,
                 740,
                 596
             ],
             "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/person/001.jpg"
         }
     },
+    "teddy bear": {
+        "2": {
+            "bbox": [
+                4,
+                413,
+                582,
+                986
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/teddy bear/001.jpg"
+        }
+    },
     "bench": {
+        "3": {
+            "bbox": [
+                449,
+                571,
+                537,
+                669
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/bench/001.jpg"
+        },
         "4": {
             "bbox": [
                 0,
-                304,
+                305,
                 747,
-                989
+                987
             ],
-            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/bench/001.jpg"
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/bench/002.jpg"
         }
     },
-    "teddy bear": {
+    "tree": {
         "5": {
             "bbox": [
                 0,
-                412,
-                580,
-                988
+                0,
+                747,
+                569
             ],
-            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/teddy bear/001.jpg"
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/tree/001.jpg"
+        }
+    },
+    "road": {
+        "6": {
+            "bbox": [
+                463,
+                559,
+                747,
+                859
+            ],
+            "mask_path": "/home/axton/axton-workspace/csc2125/models/openseed/output_tmp/road/001.jpg"
         }
     }
 }
