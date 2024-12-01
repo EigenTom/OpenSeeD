@@ -13,8 +13,9 @@ sys.path.append(file_dir)
 print(file_dir)
 
 # Define paths and configurations
-conf_files = [file_dir + "/configs/openseed/openseed_swint_lang.yaml"]
-weight_path = file_dir + "/../../model_weights/openseed_weights/model_state_dict_swint_51.2ap.pt"  # Path to model weights
+conf_files = [file_dir + "/configs/openseed/openseed_swinl_lang_decouple.yaml"]
+weight_path = file_dir + "/../../model_weights/openseed_weights/openseed_swinl_pano_sota.pt"
+
 
 thing_classes = ["person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
                  "fire hydrant", "street sign", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse",
